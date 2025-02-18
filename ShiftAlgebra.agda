@@ -88,16 +88,6 @@ pushP : (w : Word∞) (p : WordP∞ w) → PathP (λ i → WordP∞ (push∞ w i
 pushP (incl w)   = push₀ _
 pushP (push w i) = push₁ _ i
 
-{-
-push²P : (w : Word∞) (p : WordP∞ w) → PathP (λ i → WordP∞ (push²∞ w i)) p (shiftP _ (shiftP _ p))
-push²P w p i =
-  comp (λ j → WordP∞ (compPath-filler (push∞ w) (push∞ (shift∞ w)) j i)) (λ j → λ
-    { (i = i0) → p
-    ; (i = i1) → pushP _ (shiftP _ p) j })
-    (pushP _ p i)
- -- pushP _ (pushP _ p i) i
--}
-
 isContrΣWordP∞ : isContr (Σ _ WordP∞)
 isContrΣWordP∞ .fst = _ , base
 isContrΣWordP∞ .snd (x , p) = contrP x p
