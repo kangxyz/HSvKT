@@ -13,7 +13,6 @@ open import Cubical.HITs.SequentialColimit hiding (elim)
 open import ShiftAlgebra
   renaming (shift∞ to S-shift∞ ; push∞  to S-push∞
           ; elim₀  to S-elim₀  ; elim   to S-elim)
-          --; push²∞ to S-push²∞ ; push²P to S-push²P)
 
 private
   variable

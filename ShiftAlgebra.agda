@@ -55,19 +55,8 @@ push∞ (push w i) j = hcomp (λ k → λ
   ; (j = i1) → push (shift w) (i ∧ k) })
   (incl (shift w))
 
-{-
-push²∞ : (w : Word∞) → w ≡ shift∞ (shift∞ w)
-push²∞ _ = push∞ _ ∙ push∞ _
--}
-
-{-
-push²∞ : (w : Word∞) → w ≡ shift∞ (shift∞ w)
-push²∞ w i = push∞ (push∞ w i) i
--}
 
 data WordP∞ : Word∞ → Type where
-  -- shift : (w : Word∞) (p : WordP∞ w) → WordP∞ w → WordP∞ (shift∞ w)
-  -- push  : (w : Word∞) (p : WordP∞ w) → PathP (λ i → WordP∞ (push∞ w i)) p (shift _ p)
   shift₀ : {n : ℕ} (w : Word n) → WordP∞ (incl w) → WordP∞ (shift∞ (incl w))
   shift₁ : {n : ℕ} (w : Word n) →
     PathP (λ i → WordP∞ (push w i) → WordP∞ (shift∞ (push w i))) (shift₀ w) (shift₀ (shift w))
@@ -166,15 +155,3 @@ elim-push-cube i j k =
     ; (j = i1) → pushP _ (pushP _ base i) k
     ; (k = i0) → pushP _ base i
     ; (k = i1) → pushCohP-shift-square i j })
-
-{-
-elim-push-push-cube : (i j k : I) → WordP∞ (push²∞ (push base i) k)
-elim-push-push-cube i j k =
-  outS (extendWordP∞ (push²∞ (push base i) k) λ
-    { (i = i0) → push²P _ base k
-    ; (i = i1) → push²P _ (shiftP _ base) k
-    ; (j = i0) → elim (push²∞ (push base i) k)
-    ; (j = i1) → push²P _ (pushP _ base i) k
-    ; (k = i0) → pushP _ base i
-    ; (k = i1) → pushCohP-shift-shift-square i j })
--}
