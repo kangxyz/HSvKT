@@ -11,7 +11,7 @@ open import Cubical.Foundations.Equiv
 open import Cubical.Data.Nat hiding (elim)
 open import Cubical.Data.Sum hiding (elim ; map)
 open import Cubical.HITs.SequentialColimit hiding (elim)
-open import Coherence
+open import Utils.Coherence
 
 
 private

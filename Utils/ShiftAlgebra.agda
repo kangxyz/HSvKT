@@ -1,5 +1,5 @@
 {-# OPTIONS --safe --cubical --lossy-unification #-}
-module ShiftAlgebra where
+module Utils.ShiftAlgebra where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels

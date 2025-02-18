@@ -4,13 +4,13 @@ The Coherence Machine
 
 -}
 {-# OPTIONS --safe --cubical #-}
-module Coherence where
+module Utils.Coherence where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.GroupoidLaws
 open import Cubical.Data.Nat hiding (elim)
 open import Cubical.HITs.SequentialColimit hiding (elim)
-open import ShiftAlgebra
+open import Utils.ShiftAlgebra
   renaming (shift∞ to S-shift∞ ; push∞  to S-push∞
           ; elim₀  to S-elim₀  ; elim   to S-elim)
 
