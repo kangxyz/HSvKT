@@ -1,9 +1,10 @@
-{-# OPTIONS --safe --cubical --lossy-unification #-}
+{-# OPTIONS --safe --cubical --guardedness --lossy-unification #-}
 module Utils.ShiftAlgebra where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Nat hiding (elim)
+open import Cubical.Data.Sequence
 open import Cubical.HITs.SequentialColimit hiding (elim)
 
 

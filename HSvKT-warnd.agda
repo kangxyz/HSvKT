@@ -3,7 +3,7 @@
 David Wärn's version of the higher Seifert-van Kampen theorem
 
 -}
-{-# OPTIONS --safe --cubical --lossy-unification #-}
+{-# OPTIONS --safe --cubical --guardedness --lossy-unification #-}
 module HSvKT-warnd where
 
 open import Cubical.Foundations.Prelude
@@ -14,6 +14,7 @@ open import Cubical.Foundations.Equiv.HalfAdjoint
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Data.Nat hiding (elim)
 open import Cubical.Data.Sum hiding (elim ; map)
+open import Cubical.Data.Sequence
 open import Cubical.HITs.SequentialColimit hiding (elim)
 open import Utils.Coherence
 open import Utils.RelativeEquiv

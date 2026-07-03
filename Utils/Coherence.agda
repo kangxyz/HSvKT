@@ -3,13 +3,14 @@
 The Coherence Machine
 
 -}
-{-# OPTIONS --safe --cubical #-}
+{-# OPTIONS --safe --cubical --guardedness #-}
 module Utils.Coherence where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.GroupoidLaws
 open import Cubical.Foundations.Path
 open import Cubical.Data.Nat hiding (elim)
+open import Cubical.Data.Sequence
 open import Cubical.HITs.SequentialColimit hiding (elim)
 open import Utils.ShiftAlgebra
   renaming (shift∞ to S-shift∞ ; push∞  to S-push∞

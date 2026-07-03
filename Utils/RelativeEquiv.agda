@@ -1,4 +1,4 @@
-{-# OPTIONS --safe --cubical --lossy-unification #-}
+{-# OPTIONS --safe --cubical --guardedness --lossy-unification #-}
 
 module Utils.RelativeEquiv where
 
