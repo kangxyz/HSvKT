@@ -51,6 +51,7 @@ module Coh
   pushCoh-shift-filler : {n : ℕ} (x : obj n) (𝓲 𝓳 𝓴 : I) → SeqColim X
   pushCoh-shift-filler x 𝓲 𝓳 𝓴 = pushCoh-shift x 𝓲 (𝓳 ∧ 𝓴)
 
+
   comm-shift : {n : ℕ} (w : obj n) → map (map w) ≡ map (map w)
   comm-shift w = refl
 
@@ -60,6 +61,15 @@ module Coh
       { (𝓲 = i0) → map (map (map w))
       ; (𝓲 = i1) → map (comm-shift w 𝓳) })
       (inS (comm-shift (map w) 𝓲))
+
+
+  comm-shift-filler : {n : ℕ} (w : obj n) (𝓲 𝓳 : I) → obj (2 + n)
+  comm-shift-filler w 𝓲 =
+    hfill (λ 𝓳 → λ
+      { (𝓲 = i0) → map (map w)
+      ; (𝓲 = i1) → comm-shift w 𝓳 })
+      (inS (comm-shift w 𝓲))
+
 
   comm-shift-shift : {n : ℕ} (w : obj n) → map (map (map w)) ≡ map (map (map w))
   comm-shift-shift w 𝓲 = comm-shift-shift-filler w 𝓲 i1
