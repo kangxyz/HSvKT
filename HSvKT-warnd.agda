@@ -144,7 +144,6 @@ module WordConstruction
 
   open module CohR (a : X ⊎ Y) = Coh (Word∙ a)
 
-
   base∞ : Word∞ a₀
   base∞ = incl base
 
@@ -333,27 +332,6 @@ module WordConstruction
         (glueP r _ (shiftP _ p))
     commShiftP-app r w p j = prePushCohP-app r w p i1 j
 
-    appLeqHAE : {n : ℕ} {x : X} {y : Y} (r : R x y)
-      (w : Word n (inl x)) →
-      HAEquiv
-        (shift (app r w) ≡ app r (shift w))
-        (app r (inv r (app r w)) ≡ app r (shift w))
-    appLeqHAE r w = compPathlHAEquiv (req r (app r w))
-
-    appLeqHAEOver : {n : ℕ} {x : X} {y : Y} (r : R x y)
-      (w : Word n (inl x)) (p : P (incl w)) →
-      isHAEquivOver (appLeqHAE r w)
-        (λ q → PathP (λ i → P (incl (q i)))
-          (shiftP _ (glueP r _ p))
-          (glueP r _ (shiftP _ p)))
-        (λ q → PathP (λ i → P (incl (q i)))
-          (glueP r _ (invP r _ (glueP r _ p)))
-          (glueP r _ (shiftP _ p)))
-        (λ _ → compPathP' {B = λ z → P (incl z)}
-          (reqP r _ (glueP r _ p)))
-    appLeqHAEOver r w p =
-      compPathPHAEquivOver (reqP r _ (glueP r _ p))
-
     appLeqP₀ : {n : ℕ} {x : X} {y : Y} (r : R x y)
       (w : Word n (inl x)) (p : P (incl w)) →
       PathP (λ j → P (incl (comm-app r w j)))
@@ -363,21 +341,11 @@ module WordConstruction
         (glueP r _ (invP r _ (glueP r _ p)))
         (glueP r _ (shiftP _ p))
     appLeqP₀ r w p top =
-      subst
-        (λ q → PathP (λ i → P (incl (q i)))
-          (glueP r _ (invP r _ (glueP r _ p)))
-          (glueP r _ (shiftP _ p)))
-        (isHAEquiv.rinv (appLeqHAE r w .snd) appLeqPath)
-        (compPathP' {B = λ z → P (incl z)} reqP₀ top)
+      compPathP-leftHAE {B = λ z → P (incl z)}
+        (reqP r _ (glueP r _ p)) appLeqPath top
       where
       appLeqPath : app r (inv r (app r w)) ≡ app r (shift w)
       appLeqPath i = app r (leq r w i)
-
-      reqP₀ :
-        PathP (λ i → P (incl (req r (app r w) i)))
-          (glueP r _ (invP r _ (glueP r _ p)))
-          (shiftP _ (glueP r _ p))
-      reqP₀ = reqP r _ (glueP r _ p)
 
     appLeqP₀β : {n : ℕ} {x : X} {y : Y} (r : R x y)
       (w : Word n (inl x)) (p : P (incl w))
@@ -391,8 +359,8 @@ module WordConstruction
         (appLeqP₀ r w p top)
       ≡ top
     appLeqP₀β r w p top =
-      haeOverInv-rinv (appLeqHAE r w .snd) (appLeqHAEOver r w p)
-        (λ i → app r (leq r w i)) top
+      compPathP-leftHAEβ {B = λ z → P (incl z)}
+        (reqP r _ (glueP r _ p)) (λ i → app r (leq r w i)) top
 
     leqP₀  : {n : ℕ} {x : X} {y : Y} (r : R x y)
       (w : Word n (inl x)) (p : P (incl w))

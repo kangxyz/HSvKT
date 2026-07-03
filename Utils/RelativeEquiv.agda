@@ -196,3 +196,35 @@ compPathPHAEquivOver :
     (λ q → PathP (λ i → B (q i)) x' z')
     (λ _ → compPathP' {B = B} P)
 compPathPHAEquivOver P = IsoOver→HAEquivOver (compPathPIsoOver P)
+
+compPathP-leftHAE :
+  {A : Type ℓA} {B : A → Type ℓB}
+  {x y z : A} {p : x ≡ y}
+  {x' : B x} {y' : B y} {z' : B z}
+  (P : PathP (λ i → B (p i)) x' y')
+  (q : x ≡ z)
+  (Q : PathP
+    (λ i → B (isHAEquiv.g (compPathlHAEquiv p .snd) q i))
+    y' z') →
+  PathP (λ i → B (q i)) x' z'
+compPathP-leftHAE {B = B} {p = p} {x' = x'} {z' = z'} P q Q =
+  subst
+    (λ r → PathP (λ i → B (r i)) x' z')
+    (isHAEquiv.rinv (compPathlHAEquiv p .snd) q)
+    (compPathP' {B = B} P Q)
+
+compPathP-leftHAEβ :
+  {A : Type ℓA} {B : A → Type ℓB}
+  {x y z : A} {p : x ≡ y}
+  {x' : B x} {y' : B y} {z' : B z}
+  (P : PathP (λ i → B (p i)) x' y')
+  (q : x ≡ z)
+  (Q : PathP
+    (λ i → B (isHAEquiv.g (compPathlHAEquiv p .snd) q i))
+    y' z') →
+  compPathP' {B = B} (symP P)
+    (compPathP-leftHAE {B = B} {p = p} P q Q)
+  ≡ Q
+compPathP-leftHAEβ {B = B} {p = p} P q Q =
+  haeOverInv-rinv (compPathlHAEquiv p .snd)
+    (compPathPHAEquivOver {B = B} P) q Q
