@@ -18,11 +18,12 @@ open import Cubical.Data.Nat hiding (elim)
 open import Cubical.Data.Sum hiding (elim ; map)
 open import Cubical.HITs.SequentialColimit hiding (elim)
 open import Utils.Coherence
+open import Utils.RelativeEquiv
 
 
 private
   variable
-    ℓ ℓ' ℓ'' ℓ''' ℓA ℓB ℓP ℓQ : Level
+    ℓ ℓ' ℓ'' ℓ''' : Level
 
 
 module WordConstruction
@@ -32,18 +33,6 @@ module WordConstruction
   where
 
   open Sequence
-
-  {-
-
-  data Code : X ⊎ Y → Type (ℓ-max ℓ (ℓ-max ℓ' ℓ'')) where
-    base : Code a₀
-    app : {x : X} {y : Y} (r : R x y) → Code (inl x) → Code (inr y)
-    linv : {x : X} {y : Y} (r : R x y) → Code (inr y) → Code (inl x)
-    rinv : {x : X} {y : Y} (r : R x y) → Code (inr y) → Code (inl x)
-    leq  : {x : X} {y : Y} (r : R x y) (u : Code (inl x)) → linv r (app r u) ≡ u
-    req  : {x : X} {y : Y} (r : R x y) (v : Code (inr y)) → app r (rinv r v) ≡ v
-
-  -}
 
 
   data Word : ℕ → X ⊎ Y → Type (ℓ-max ℓ (ℓ-max ℓ' ℓ'')) where
@@ -58,205 +47,12 @@ module WordConstruction
     req : {n : ℕ} {x : X} {y : Y} (r : R x y)
       (w : Word n (inr y)) → app r (inv r w) ≡ shift w
 
+
   comm-app : {n : ℕ} {x : X} {y : Y} (r : R x y) (w : Word n (inl x)) → shift (app r w) ≡ app r (shift w)
   comm-app r w = (λ i → req r (app r w) (~ i)) ∙ (λ i → app r (leq r w i))
 
   comm-inv : {n : ℕ} {x : X} {y : Y} (r : R x y) (w : Word n (inr y)) → shift (inv r w) ≡ inv r (shift w)
   comm-inv r w = (λ i → leq r (inv r w) (~ i)) ∙ (λ i → inv r (req r w i))
-
-  homNatComp : {A : Type ℓA} {B : Type ℓB} {F G : A → B}
-    (H : (a : A) → F a ≡ G a) {x y : A} (p : x ≡ y) →
-      cong F p ∙ H y ≡ H x ∙ cong G p
-  homNatComp H p = Square→compPath (λ i j → H (p i) j)
-
-  doubleCancel : {A : Type ℓA} {a b c d : A}
-    (p : a ≡ b) (q : b ≡ c) (r : a ≡ d) →
-      (p ∙ q) ∙ (sym q ∙ (sym p ∙ r)) ≡ r
-  doubleCancel p q r =
-    (p ∙ q) ∙ (sym q ∙ (sym p ∙ r))
-      ≡⟨ sym (assoc p q (sym q ∙ (sym p ∙ r))) ⟩
-    p ∙ (q ∙ (sym q ∙ (sym p ∙ r)))
-      ≡⟨ cong (p ∙_) (assoc q (sym q) (sym p ∙ r)) ⟩
-    p ∙ ((q ∙ sym q) ∙ (sym p ∙ r))
-      ≡⟨ cong (λ s → p ∙ (s ∙ (sym p ∙ r))) (rCancel q) ⟩
-    p ∙ (refl ∙ (sym p ∙ r))
-      ≡⟨ cong (p ∙_) (sym (lUnit (sym p ∙ r))) ⟩
-    p ∙ (sym p ∙ r)
-      ≡⟨ assoc p (sym p) r ⟩
-    (p ∙ sym p) ∙ r
-      ≡⟨ cong (_∙ r) (rCancel p) ⟩
-    refl ∙ r
-      ≡⟨ sym (lUnit r) ⟩
-    r ∎
-
-  haeOverInv-rinv :
-    {A : Type ℓA} {B : Type ℓB}
-    {P : A → Type ℓP} {Q : B → Type ℓQ}
-    {f : A → B} (h : isHAEquiv f)
-    {F : mapOver f P Q}
-    (hₒ : isHAEquivOver (f , h) P Q F)
-    (b : B) (p : P (isHAEquiv.g h b)) →
-    isHAEquivOver.inv hₒ b
-      (subst Q (isHAEquiv.rinv h b) (F (isHAEquiv.g h b) p))
-      ≡ p
-  haeOverInv-rinv {P = P} {Q = Q} {f = f} h {F = F} hₒ b p =
-    sym (substCommSlice Q (λ b → P (isHAEquiv.g h b))
-      (λ b → isHAEquivOver.inv hₒ b)
-      (isHAEquiv.rinv h b)
-      (F (isHAEquiv.g h b) p))
-    ∙ cong (λ l → subst P l
-        (isHAEquivOver.inv hₒ (f (isHAEquiv.g h b))
-          (F (isHAEquiv.g h b) p)))
-        (isHAEquiv.com-op h b)
-    ∙ fromPathP (isHAEquivOver.linv hₒ (isHAEquiv.g h b) p)
-
-  compPath-filler'-filler : {A : Type ℓA} {x y z : A}
-    (p : x ≡ y) (q : y ≡ z) (j i k : I) → A
-  compPath-filler'-filler p q j i =
-    hfill (λ k → λ
-      { (i = i0) → p (~ j)
-      ; (i = i1) → q k
-      ; (j = i0) → q (i ∧ k) })
-      (inS (p (i ∨ ~ j)))
-
-  compPathP'-filler' :
-    {A : Type ℓA} {B : A → Type ℓB}
-    {x y z : A} {p : x ≡ y} {q : y ≡ z}
-    {x' : B x} {y' : B y} {z' : B z}
-    (P : PathP (λ i → B (p i)) x' y')
-    (Q : PathP (λ i → B (q i)) y' z') →
-    PathP (λ j → PathP (λ i → B (compPath-filler' p q j i)) (P (~ j)) z')
-      Q (compPathP' {B = B} P Q)
-  compPathP'-filler' {B = B} {p = p} {q = q} P Q j i =
-    comp (λ k → B (compPath-filler'-filler p q j i k))
-      (λ k → λ
-        { (i = i0) → P (~ j)
-        ; (i = i1) → Q k
-        ; (j = i0) → Q (i ∧ k) })
-      (P (i ∨ ~ j))
-
-  assocP' :
-    {A : Type ℓA} {B : A → Type ℓB}
-    {x y z w : A} {p : x ≡ y} {q : y ≡ z} {r : z ≡ w}
-    {x' : B x} {y' : B y} {z' : B z} {w' : B w}
-    (P : PathP (λ i → B (p i)) x' y')
-    (Q : PathP (λ i → B (q i)) y' z')
-    (R : PathP (λ i → B (r i)) z' w') →
-    PathP (λ k → PathP (λ i → B (assoc p q r k i)) x' w')
-      (compPathP' {B = B} P (compPathP' {B = B} Q R))
-      (compPathP' {B = B} (compPathP' {B = B} P Q) R)
-  assocP' {B = B} {p = p} {q = q} {r = r} P Q R k =
-    compPathP' {B = B}
-      (compPathP'-filler {B = B} P Q k)
-      (compPathP'-filler' {B = B} Q R (~ k))
-
-  rCancelP' :
-    {A : Type ℓA} {B : A → Type ℓB}
-    {x y : A} {p : x ≡ y}
-    {x' : B x} {y' : B y}
-    (P : PathP (λ i → B (p i)) x' y') →
-    PathP (λ j → PathP (λ i → B (rCancel p j i)) x' x')
-      (compPathP' {B = B} P (symP P)) refl
-  rCancelP' {B = B} {p = p} {x' = x'} P j i =
-    comp (λ k → B (rCancel-filler p k j i))
-      (λ k → λ
-        { (i = i0) → x'
-        ; (i = i1) → P (~ k ∧ ~ j)
-        ; (j = i1) → x' })
-      (P (i ∧ ~ j))
-
-  lCancelP' :
-    {A : Type ℓA} {B : A → Type ℓB}
-    {x y : A} {p : x ≡ y}
-    {x' : B x} {y' : B y}
-    (P : PathP (λ i → B (p i)) x' y') →
-    PathP (λ j → PathP (λ i → B (lCancel p j i)) y' y')
-      (compPathP' {B = B} (symP P) P) refl
-  lCancelP' {B = B} {p = p} P = rCancelP' {B = B} {p = sym p} (symP P)
-
-  compPathl-cancelR : {A : Type ℓA} {x y z : A}
-    (p : x ≡ y) (q : x ≡ z) → p ∙ (sym p ∙ q) ≡ q
-  compPathl-cancelR p q =
-    assoc p (sym p) q
-    ∙ cong (_∙ q) (rCancel p)
-    ∙ sym (lUnit q)
-
-  compPathl-cancelL : {A : Type ℓA} {x y z : A}
-    (p : x ≡ y) (q : y ≡ z) → sym p ∙ (p ∙ q) ≡ q
-  compPathl-cancelL p q =
-    assoc (sym p) p q
-    ∙ cong (_∙ q) (lCancel p)
-    ∙ sym (lUnit q)
-
-  compPathP'-lCancel :
-    {A : Type ℓA} {B : A → Type ℓB}
-    {x y z : A} {p : x ≡ y} {q : y ≡ z}
-    {x' : B x} {y' : B y} {z' : B z}
-    (P : PathP (λ i → B (p i)) x' y')
-    (Q : PathP (λ i → B (q i)) y' z') →
-    PathP (λ k → PathP (λ i → B (compPathl-cancelL p q k i)) y' z')
-      (compPathP' {B = B} (symP P) (compPathP' {B = B} P Q))
-      Q
-  compPathP'-lCancel {B = B} {y = y} {z = z} {p = p} {q = q} {y' = y'} {z' = z'} P Q =
-    compPathP' {A = y ≡ z}
-      {B = λ s → PathP (λ i → B (s i)) y' z'}
-      {p = assoc (sym p) p q}
-      {q = cong (_∙ q) (lCancel p) ∙ sym (lUnit q)}
-      (assocP' {B = B} (symP P) P Q)
-      (compPathP' {A = y ≡ z}
-        {B = λ s → PathP (λ i → B (s i)) y' z'}
-        {p = cong (_∙ q) (lCancel p)}
-        {q = sym (lUnit q)}
-        (λ j → compPathP' {B = B} {p = lCancel p j} {q = q}
-          (lCancelP' {B = B} {p = p} P j) Q)
-        (symP (lUnitP' B Q)))
-
-  compPathP'-rCancel :
-    {A : Type ℓA} {B : A → Type ℓB}
-    {x y z : A} {p : x ≡ y} {q : x ≡ z}
-    {x' : B x} {y' : B y} {z' : B z}
-    (P : PathP (λ i → B (p i)) x' y')
-    (Q : PathP (λ i → B (q i)) x' z') →
-    PathP (λ k → PathP (λ i → B (compPathl-cancelR p q k i)) x' z')
-      (compPathP' {B = B} P (compPathP' {B = B} (symP P) Q))
-      Q
-  compPathP'-rCancel {B = B} {x = x} {z = z} {p = p} {q = q} {x' = x'} {z' = z'} P Q =
-    compPathP' {A = x ≡ z}
-      {B = λ s → PathP (λ i → B (s i)) x' z'}
-      {p = assoc p (sym p) q}
-      {q = cong (_∙ q) (rCancel p) ∙ sym (lUnit q)}
-      (assocP' {B = B} P (symP P) Q)
-      (compPathP' {A = x ≡ z}
-        {B = λ s → PathP (λ i → B (s i)) x' z'}
-        {p = cong (_∙ q) (rCancel p)}
-        {q = sym (lUnit q)}
-        (λ j → compPathP' {B = B} {p = rCancel p j} {q = q}
-          (rCancelP' {B = B} {p = p} P j) Q)
-        (symP (lUnitP' B Q)))
-
-  compPathlIso : {A : Type ℓA} {x y z : A}
-    (p : x ≡ y) → Iso (y ≡ z) (x ≡ z)
-  compPathlIso p .Iso.fun = p ∙_
-  compPathlIso p .Iso.inv = sym p ∙_
-  compPathlIso p .Iso.rightInv = compPathl-cancelR p
-  compPathlIso p .Iso.leftInv = compPathl-cancelL p
-
-  compPathPIsoOver :
-    {A : Type ℓA} {B : A → Type ℓB}
-    {x y z : A} {p : x ≡ y}
-    {x' : B x} {y' : B y} {z' : B z}
-    (P : PathP (λ i → B (p i)) x' y') →
-    IsoOver (compPathlIso {z = z} p)
-      (λ q → PathP (λ i → B (q i)) y' z')
-      (λ q → PathP (λ i → B (q i)) x' z')
-  compPathPIsoOver {B = B} P .IsoOver.fun q Q =
-    compPathP' {B = B} P Q
-  compPathPIsoOver {B = B} P .IsoOver.inv q Q =
-    compPathP' {B = B} (symP P) Q
-  compPathPIsoOver P .IsoOver.rightInv q Q =
-    compPathP'-rCancel P Q
-  compPathPIsoOver P .IsoOver.leftInv q Q =
-    compPathP'-lCancel P Q
 
   comm-leq  : {n : ℕ} {x : X} {y : Y} (r : R x y)
       (w : Word n (inl x)) →
@@ -339,8 +135,6 @@ module WordConstruction
       cong shift (req r w) ∎
 
 
-
-
   Word∙ : X ⊎ Y → Sequence (ℓ-max (ℓ-max ℓ ℓ') ℓ'')
   Word∙ a .obj n = Word n a
   Word∙ _ .map   = shift
@@ -351,10 +145,8 @@ module WordConstruction
   open module CohR (a : X ⊎ Y) = Coh (Word∙ a)
 
 
-
   base∞ : Word∞ a₀
   base∞ = incl base
-
 
   pushCoh-app : {n : ℕ} {x : X} {y : Y} (r : R x y)
     (w : Word n (inl x)) (𝓲 𝓳 : I) → Word∞ (inr y)
@@ -438,7 +230,6 @@ module WordConstruction
   pushCoh-app-inv r w 𝓲 𝓳 = pushCoh-app-inv-filler r w 𝓲 𝓳 i1
 
 
-
   pushCoh-leq : {n : ℕ} {x : X} {y : Y} (r : R x y)
     (w : Word n (inl x)) (i : I) (𝓲 𝓳 : I) → Word∞ (inl x)
   pushCoh-leq r w i 𝓲 =
@@ -493,6 +284,8 @@ module WordConstruction
   appIso r .Iso.rightInv = norm-req∞ r
   appIso r .Iso.leftInv  = norm-leq∞ r
 
+
+
   module ThickElim
     (P : {a : X ⊎ Y} → Word∞ a → Type ℓ''')
     (shiftP : {a : X ⊎ Y} (w : Word∞ a) → P w → P (shift∞ _ w))
@@ -540,59 +333,84 @@ module WordConstruction
         (glueP r _ (shiftP _ p))
     commShiftP-app r w p j = prePushCohP-app r w p i1 j
 
+    appLeqHAE : {n : ℕ} {x : X} {y : Y} (r : R x y)
+      (w : Word n (inl x)) →
+      HAEquiv
+        (shift (app r w) ≡ app r (shift w))
+        (app r (inv r (app r w)) ≡ app r (shift w))
+    appLeqHAE r w = compPathlHAEquiv (req r (app r w))
+
+    appLeqHAEOver : {n : ℕ} {x : X} {y : Y} (r : R x y)
+      (w : Word n (inl x)) (p : P (incl w)) →
+      isHAEquivOver (appLeqHAE r w)
+        (λ q → PathP (λ i → P (incl (q i)))
+          (shiftP _ (glueP r _ p))
+          (glueP r _ (shiftP _ p)))
+        (λ q → PathP (λ i → P (incl (q i)))
+          (glueP r _ (invP r _ (glueP r _ p)))
+          (glueP r _ (shiftP _ p)))
+        (λ _ → compPathP' {B = λ z → P (incl z)}
+          (reqP r _ (glueP r _ p)))
+    appLeqHAEOver r w p =
+      compPathPHAEquivOver (reqP r _ (glueP r _ p))
+
+    appLeqP₀ : {n : ℕ} {x : X} {y : Y} (r : R x y)
+      (w : Word n (inl x)) (p : P (incl w)) →
+      PathP (λ j → P (incl (comm-app r w j)))
+        (shiftP _ (glueP r _ p))
+        (glueP r _ (shiftP _ p)) →
+      PathP (λ i → P (incl (app r (leq r w i))))
+        (glueP r _ (invP r _ (glueP r _ p)))
+        (glueP r _ (shiftP _ p))
+    appLeqP₀ r w p top =
+      subst
+        (λ q → PathP (λ i → P (incl (q i)))
+          (glueP r _ (invP r _ (glueP r _ p)))
+          (glueP r _ (shiftP _ p)))
+        (isHAEquiv.rinv (appLeqHAE r w .snd) appLeqPath)
+        (compPathP' {B = λ z → P (incl z)} reqP₀ top)
+      where
+      appLeqPath : app r (inv r (app r w)) ≡ app r (shift w)
+      appLeqPath i = app r (leq r w i)
+
+      reqP₀ :
+        PathP (λ i → P (incl (req r (app r w) i)))
+          (glueP r _ (invP r _ (glueP r _ p)))
+          (shiftP _ (glueP r _ p))
+      reqP₀ = reqP r _ (glueP r _ p)
+
+    appLeqP₀β : {n : ℕ} {x : X} {y : Y} (r : R x y)
+      (w : Word n (inl x)) (p : P (incl w))
+      (top : PathP (λ j → P (incl (comm-app r w j)))
+        (shiftP _ (glueP r _ p))
+        (glueP r _ (shiftP _ p))) →
+      compPathP' {B = λ z → P (incl z)}
+        {p = λ i → req r (app r w) (~ i)}
+        {q = λ i → app r (leq r w i)}
+        (symP (reqP r _ (glueP r _ p)))
+        (appLeqP₀ r w p top)
+      ≡ top
+    appLeqP₀β r w p top =
+      haeOverInv-rinv (appLeqHAE r w .snd) (appLeqHAEOver r w p)
+        (λ i → app r (leq r w i)) top
+
     leqP₀  : {n : ℕ} {x : X} {y : Y} (r : R x y)
       (w : Word n (inl x)) (p : P (incl w))
       → PathP (λ i → P (incl (leq r w i)))
           (invP r _ (glueP r _ p)) (shiftP _ p)
     leqP₀ r w p =
-      Iso.inv (congPathIso gluePathEquiv) desired
+      Iso.inv (congPathIso gluePathEquiv)
+        (appLeqP₀ r w p (commShiftP-app r w p))
       where
       leqPath : incl (inv r (app r w)) ≡ incl (shift w)
       leqPath i = incl (leq r w i)
 
-      reqPath : app r (inv r (app r w)) ≡ shift (app r w)
-      reqPath = req r (app r w)
-
       appLeqPath : app r (inv r (app r w)) ≡ app r (shift w)
       appLeqPath i = app r (leq r w i)
-
-      reqP₀ :
-        PathP (λ i → P (incl (reqPath i)))
-          (glueP r _ (invP r _ (glueP r _ p)))
-          (shiftP _ (glueP r _ p))
-      reqP₀ = reqP r _ (glueP r _ p)
-
-      preHAE : HAEquiv (shift (app r w) ≡ app r (shift w))
-        (app r (inv r (app r w)) ≡ app r (shift w))
-      preHAE = iso→HAEquiv (compPathlIso reqPath)
-
-      preHAEOver :
-        isHAEquivOver preHAE
-          (λ q → PathP (λ i → P (incl (q i)))
-            (shiftP _ (glueP r _ p))
-            (glueP r _ (shiftP _ p)))
-          (λ q → PathP (λ i → P (incl (q i)))
-            (glueP r _ (invP r _ (glueP r _ p)))
-            (glueP r _ (shiftP _ p)))
-          (λ _ → compPathP' {B = λ z → P (incl z)} reqP₀)
-      preHAEOver = IsoOver→HAEquivOver (compPathPIsoOver reqP₀)
 
       gluePathEquiv : (i : I) →
         P (leqPath i) ≃ P (incl (appLeqPath i))
       gluePathEquiv i = glueP r _ , equivP r _
-
-      desired :
-        PathP (λ i → P (incl (appLeqPath i)))
-          (glueP r _ (invP r _ (glueP r _ p)))
-          (glueP r _ (shiftP _ p))
-      desired =
-        subst
-          (λ q → PathP (λ i → P (incl (q i)))
-            (glueP r _ (invP r _ (glueP r _ p)))
-            (glueP r _ (shiftP _ p)))
-          (isHAEquiv.rinv (preHAE .snd) appLeqPath)
-          (compPathP' {B = λ z → P (incl z)} reqP₀
-            (commShiftP-app r w p))
 
     commAppP₀ : {n : ℕ} {x : X} {y : Y} (r : R x y)
       (w : Word n (inl x)) (p : P (incl w)) →
@@ -627,67 +445,22 @@ module WordConstruction
     commAppP₀β r w p =
       cong (compPathP' {B = λ z → P (incl z)} {p = reqBack} {q = appLeqPath}
               (symP (reqP r _ (glueP r _ p))))
-        (Iso.rightInv (congPathIso gluePathEquiv) desired)
-      ∙ cancelReqβ
+        (Iso.rightInv (congPathIso gluePathEquiv)
+          (appLeqP₀ r w p (pushCohP-app-top r w p)))
+      ∙ appLeqP₀β r w p (pushCohP-app-top r w p)
       where
-      reqPath : app r (inv r (app r w)) ≡ shift (app r w)
-      reqPath = req r (app r w)
-
-      reqP₀ :
-        PathP (λ i → P (incl (reqPath i)))
-          (glueP r _ (invP r _ (glueP r _ p)))
-          (shiftP _ (glueP r _ p))
-      reqP₀ = reqP r _ (glueP r _ p)
-
       appLeqPath∞ : app r (inv r (app r w)) ≡ app r (shift w)
       appLeqPath∞ i = app r (leq r w i)
-
-      preHAE : HAEquiv (shift (app r w) ≡ app r (shift w))
-        (app r (inv r (app r w)) ≡ app r (shift w))
-      preHAE = iso→HAEquiv (compPathlIso reqPath)
-
-      preHAEOver :
-        isHAEquivOver preHAE
-          (λ q → PathP (λ i → P (incl (q i)))
-            (shiftP _ (glueP r _ p))
-            (glueP r _ (shiftP _ p)))
-          (λ q → PathP (λ i → P (incl (q i)))
-            (glueP r _ (invP r _ (glueP r _ p)))
-            (glueP r _ (shiftP _ p)))
-          (λ _ → compPathP' {B = λ z → P (incl z)} reqP₀)
-      preHAEOver = IsoOver→HAEquivOver (compPathPIsoOver reqP₀)
 
       gluePathEquiv : (i : I) →
         P (incl (leq r w i)) ≃ P (incl (appLeqPath∞ i))
       gluePathEquiv i = glueP r _ , equivP r _
-
-      desired :
-        PathP (λ i → P (incl (appLeqPath∞ i)))
-          (glueP r _ (invP r _ (glueP r _ p)))
-          (glueP r _ (shiftP _ p))
-      desired =
-        subst
-          (λ q → PathP (λ i → P (incl (q i)))
-            (glueP r _ (invP r _ (glueP r _ p)))
-            (glueP r _ (shiftP _ p)))
-          (isHAEquiv.rinv (preHAE .snd) appLeqPath∞)
-          (compPathP' {B = λ z → P (incl z)} reqP₀
-            (pushCohP-app-top r w p))
 
       reqBack : shift (app r w) ≡ app r (inv r (app r w))
       reqBack i = req r (app r w) (~ i)
 
       appLeqPath : app r (inv r (app r w)) ≡ app r (shift w)
       appLeqPath i = app r (leq r w i)
-
-      cancelReqβ :
-        compPathP' {B = λ z → P (incl z)} {p = reqBack} {q = appLeqPath}
-          (symP (reqP r _ (glueP r _ p)))
-          desired
-        ≡ pushCohP-app-top r w p
-      cancelReqβ =
-        haeOverInv-rinv (preHAE .snd) preHAEOver
-          appLeqPath∞ (pushCohP-app-top r w p)
 
     elim₀ : {a : X ⊎ Y} {n : ℕ} (w : Word n a) → P (incl w)
     elim₀ (shift w) = shiftP _ (elim₀ w)
@@ -711,6 +484,8 @@ module WordConstruction
         ; (𝓴 = i0) → elim (pushCoh-app r w 𝓲 𝓳)
         ; (𝓴 = i1) → pushCohP-app r w (elim₀ w) 𝓲 𝓳 })
         (elim (push (app r w) 𝓲))
+
+
 
   module ThinElim
     (P : {a : X ⊎ Y} → Word∞ a → Type ℓ''')

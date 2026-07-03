@@ -8,6 +8,7 @@ module Utils.Coherence where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.GroupoidLaws
+open import Cubical.Foundations.Path
 open import Cubical.Data.Nat hiding (elim)
 open import Cubical.HITs.SequentialColimit hiding (elim)
 open import Utils.ShiftAlgebra
@@ -16,7 +17,32 @@ open import Utils.ShiftAlgebra
 
 private
   variable
-    ℓ ℓ' : Level
+    ℓ ℓ' ℓA ℓB : Level
+
+homNatComp : {A : Type ℓA} {B : Type ℓB} {F G : A → B}
+  (H : (a : A) → F a ≡ G a) {x y : A} (p : x ≡ y) →
+    cong F p ∙ H y ≡ H x ∙ cong G p
+homNatComp H p = Square→compPath (λ i j → H (p i) j)
+
+doubleCancel : {A : Type ℓA} {a b c d : A}
+  (p : a ≡ b) (q : b ≡ c) (r : a ≡ d) →
+    (p ∙ q) ∙ (sym q ∙ (sym p ∙ r)) ≡ r
+doubleCancel p q r =
+  (p ∙ q) ∙ (sym q ∙ (sym p ∙ r))
+    ≡⟨ sym (assoc p q (sym q ∙ (sym p ∙ r))) ⟩
+  p ∙ (q ∙ (sym q ∙ (sym p ∙ r)))
+    ≡⟨ cong (p ∙_) (assoc q (sym q) (sym p ∙ r)) ⟩
+  p ∙ ((q ∙ sym q) ∙ (sym p ∙ r))
+    ≡⟨ cong (λ s → p ∙ (s ∙ (sym p ∙ r))) (rCancel q) ⟩
+  p ∙ (refl ∙ (sym p ∙ r))
+    ≡⟨ cong (p ∙_) (sym (lUnit (sym p ∙ r))) ⟩
+  p ∙ (sym p ∙ r)
+    ≡⟨ assoc p (sym p) r ⟩
+  (p ∙ sym p) ∙ r
+    ≡⟨ cong (_∙ r) (rCancel p) ⟩
+  refl ∙ r
+    ≡⟨ sym (lUnit r) ⟩
+  r ∎
 
 
 module Coh
@@ -135,4 +161,3 @@ module Coh
     pushCohP-shift-shift : {n : ℕ} (w : obj n) (p : P (incl w))
       (𝓲 𝓳 : I) → P (pushCoh-shift-shift w 𝓲 𝓳)
     pushCohP-shift-shift w p 𝓲 𝓳 = pushCohP-shift-shift-filler w p 𝓲 𝓳 i1
-
