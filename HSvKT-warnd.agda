@@ -1,10 +1,10 @@
 {-
 
-The Higher Seifert-van Kampen Theorem
+David Wärn's version of the Higher Seifert-van Kampen Theorem
 
 -}
 {-# OPTIONS --safe --cubical --lossy-unification #-}
-module HSvKT5 where
+module HSvKT-warnd where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.GroupoidLaws
