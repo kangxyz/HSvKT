@@ -7,7 +7,7 @@ In [`HSvKT-warnd.agda`](/HSvKT-warnd.agda), it proves the direct colimit of the 
 This project is checked with:
 
 - Agda 2.8.0
-- Cubical Agda library 0.9-compatible checkout (`v0.9-70-g92166033`)
+- Cubical Agda library master (`92166033326aa59800a580b428125f3c654b5e45`)
 
 To check the project, run:
 
