@@ -297,7 +297,7 @@ module WordConstruction
     commAppP₀β r w p =
       cong (compPathP' {B = λ z → P (incl z)} {p = reqBack} {q = appLeqPath}
               (symP (reqP r _ (glueP r _ p))))
-        (Iso.rightInv (congPathIso gluePathEquiv)
+        (Iso.sec (congPathIso gluePathEquiv)
           (appLeqP₀ r w p (pushCohP-app-top r w p)))
       ∙ appLeqP₀β r w p (pushCohP-app-top r w p)
       where

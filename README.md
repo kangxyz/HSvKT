@@ -4,7 +4,13 @@ In [`HSvKT-warnd.agda`](/HSvKT-warnd.agda), it proves the direct colimit of the 
 
 ## Dependencies
 
-This is checked with:
+This project is checked with:
 
 - Agda 2.8.0
-- Cubical Agda library 0.9
+- Cubical Agda library 0.9-compatible checkout (`v0.9-70-g92166033`)
+
+To check the project, run:
+
+```sh
+agda HSvKT-warnd.agda
+```

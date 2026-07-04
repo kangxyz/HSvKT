@@ -162,8 +162,8 @@ compPathlIso : {A : Type ℓA} {x y z : A}
   (p : x ≡ y) → Iso (y ≡ z) (x ≡ z)
 compPathlIso p .Iso.fun = p ∙_
 compPathlIso p .Iso.inv = sym p ∙_
-compPathlIso p .Iso.rightInv = compPathl-cancelR p
-compPathlIso p .Iso.leftInv = compPathl-cancelL p
+compPathlIso p .Iso.sec = compPathl-cancelR p
+compPathlIso p .Iso.ret = compPathl-cancelL p
 
 compPathPIsoOver :
   {A : Type ℓA} {B : A → Type ℓB}
